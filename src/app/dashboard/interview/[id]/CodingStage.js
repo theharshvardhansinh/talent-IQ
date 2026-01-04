@@ -183,7 +183,7 @@ export default function CodingStage({ interview, currentUser, isInterviewer }) {
                 <div className="flex-1 relative">
                     <Editor
                         height="100%"
-                        language="javascript" // Currently fixed to JS for MVP, or dynamic from problem
+                        language={language}
                         theme="vs-dark"
                         value={code}
                         onChange={(value) => setCode(value)}
