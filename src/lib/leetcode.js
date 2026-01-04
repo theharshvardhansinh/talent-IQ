@@ -2,14 +2,31 @@ import axios from 'axios';
 
 const LEETCODE_API_ENDPOINT = 'https://leetcode.com/graphql';
 
-// We'll use a public proxy or wrapper if direct access is blocked, 
-// but for this implementation we'll try to mimic a browser client or use a public API mirror
-// because LeetCode has strict CORS/Bot protection.
-// Using a stable mirror for interviews is often safer. 
-// We will use the 'alfa-leetcode-api' style endpoints if we were hosting it, 
-// but here we might need to fallback to a curated list if the fetch fails to avoid breaking the UX.
+const GRAPHQL_QUERY = `
+  query problemsetQuestionList($categorySlug: String, $limit: Int, $skip: Int, $filters: QuestionListFilterInput) {
+    problemsetQuestionList: questionList(
+      categorySlug: $categorySlug
+      limit: $limit
+      skip: $skip
+      filters: $filters
+    ) {
+      total: totalNum
+      questions: data {
+        acRate
+        difficulty
+        paidOnly: isPaidOnly
+        title
+        titleSlug
+        topicTags {
+          name
+          slug
+        }
+      }
+    }
+  }
+`;
 
-// Mock data for fallback to ensure the app works immediately for the user
+// Expanded mock data for fallback
 const MOCK_PROBLEMS = [
     {
         titleSlug: "two-sum",
@@ -23,21 +40,21 @@ const MOCK_PROBLEMS = [
         title: "Add Two Numbers",
         difficulty: "Medium",
         acRate: 43.1,
-        topicTags: [{ name: "Linked List" }, { name: "Math" }]
+        topicTags: [{ name: "Linked List" }, { name: "Math" }, { name: "Recursion" }]
     },
     {
         titleSlug: "longest-substring-without-repeating-characters",
         title: "Longest Substring Without Repeating Characters",
         difficulty: "Medium",
         acRate: 35.0,
-        topicTags: [{ name: "String" }, { name: "Sliding Window" }]
+        topicTags: [{ name: "String" }, { name: "Sliding Window" }, { name: "Hash Table" }]
     },
     {
         titleSlug: "median-of-two-sorted-arrays",
         title: "Median of Two Sorted Arrays",
         difficulty: "Hard",
         acRate: 41.2,
-        topicTags: [{ name: "Array" }, { name: "Binary Search" }]
+        topicTags: [{ name: "Array" }, { name: "Binary Search" }, { name: "Divide and Conquer" }]
     },
     {
         titleSlug: "valid-parentheses",
@@ -45,26 +62,67 @@ const MOCK_PROBLEMS = [
         difficulty: "Easy",
         acRate: 40.3,
         topicTags: [{ name: "String" }, { name: "Stack" }]
+    },
+    {
+        titleSlug: "merge-intervals",
+        title: "Merge Intervals",
+        difficulty: "Medium",
+        acRate: 47.5,
+        topicTags: [{ name: "Array" }, { name: "Sorting" }]
+    },
+    {
+        titleSlug: "climbing-stairs",
+        title: "Climbing Stairs",
+        difficulty: "Easy",
+        acRate: 54.0,
+        topicTags: [{ name: "Math" }, { name: "Dynamic Programming" }]
+    },
+    {
+        titleSlug: "coin-change",
+        title: "Coin Change",
+        difficulty: "Medium",
+        acRate: 44.0,
+        topicTags: [{ name: "Array" }, { name: "Dynamic Programming" }, { name: "Breadth-First Search" }]
+    },
+    {
+        titleSlug: "course-schedule",
+        title: "Course Schedule",
+        difficulty: "Medium",
+        acRate: 46.5,
+        topicTags: [{ name: "Depth-First Search" }, { name: "Breadth-First Search" }, { name: "Graph" }, { name: "Topological Sort" }]
+    },
+    {
+        titleSlug: "number-of-islands",
+        title: "Number of Islands",
+        difficulty: "Medium",
+        acRate: 59.8,
+        topicTags: [{ name: "Array" }, { name: "Depth-First Search" }, { name: "Breadth-First Search" }, { name: "Union Find" }, { name: "Matrix" }]
+    },
+    {
+        titleSlug: "reverse-linked-list",
+        title: "Reverse Linked List",
+        difficulty: "Easy",
+        acRate: 75.6,
+        topicTags: [{ name: "Linked List" }, { name: "Recursion" }]
+    },
+    {
+        titleSlug: "maximum-depth-of-binary-tree",
+        title: "Maximum Depth of Binary Tree",
+        difficulty: "Easy",
+        acRate: 75.3,
+        topicTags: [{ name: "Tree" }, { name: "Depth-First Search" }, { name: "Breadth-First Search" }, { name: "Binary Tree" }]
     }
 ];
 
-export async function getProblemList(limit = 20, skip = 0) {
-    try {
-        // Try fetching from a public mirror first if available, 
-        // otherwise return mock to guarantee it works for the demo.
-        // Direct GraphQL from server side often works if headers are right, but is flaky.
-        // We will return mock data for stability in this demo environment.
-        return MOCK_PROBLEMS;
-    } catch (error) {
-        console.error("Failed to fetch problems", error);
-        return MOCK_PROBLEMS;
-    }
+export async function getProblemList(limit = 50, skip = 0) {
+    // Return mock data directly for stability/demo purposes as requested
+    // This ensures the list is always the same (hardcoded) and reliable.
+    return MOCK_PROBLEMS;
 }
 
 export async function getProblemDetail(slug) {
-    // Return mock details for now or implement real fetch
-    // Real fetch often requires complex query. 
-    // We'll mock the content for the "Two Sum" case and generic for others to ensure it works.
+    // Return mock details specifically for "Two Sum" or generic for others
+    // In a real app, this would also query the GraphQL API for 'questionData'
 
     if (slug === 'two-sum') {
         return {
@@ -90,11 +148,17 @@ export async function getProblemDetail(slug) {
         };
     }
 
+    // Generic fallback for other problems
+    // Try to prettify the slug for the title
+    const title = slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+
     return {
         titleSlug: slug,
-        title: slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
-        difficulty: "Medium",
-        content: `<p>Problem description for <strong>${slug}</strong> is currently generic in this demo.</p><p>Please implement the solution.</p>`,
+        title: title,
+        difficulty: "Medium", // Default assumption
+        content: `<p>Problem description for <strong>${title}</strong>.</p>
+                 <p>This is a placeholder description for the mock environment.</p>
+                 <p>Please implement the solution based on standard LeetCode requirements for this problem.</p>`,
         starterCodes: {
             javascript: `// Write your solution for ${slug} here\n\nfunction solution() {\n    \n}`,
             python: `# Write your solution for ${slug} here\n\ndef solution():\n    pass`,

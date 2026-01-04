@@ -31,6 +31,24 @@ export default function IntervieweeSection({ recentApplications, interviews = []
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
+            {/* Competitions Banner */}
+            <div className="lg:col-span-2">
+                <Link href="/dashboard/competitions">
+                    <div className="glass-card rounded-2xl p-6 border border-primary/20 bg-gradient-to-r from-primary/10 to-transparent hover:border-primary/40 transition-all cursor-pointer flex items-center justify-between group">
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 rounded-xl bg-primary text-white shadow-lg shadow-primary/20">
+                                <Code2 className="w-6 h-6" />
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-bold text-white group-hover:text-primary transition-colors">Coding Competitions</h3>
+                                <p className="text-sm text-base-content/60">Join live contests and compete on the leaderboard.</p>
+                            </div>
+                        </div>
+                        <ArrowRight className="w-5 h-5 text-base-content/40 group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                    </div>
+                </Link>
+            </div>
+
             {/* TOP ROW: Pending Requests & Active Interviews */}
             {(pendingRequests.length > 0 || activeInterviews.length > 0) && (
                 <div className="lg:col-span-2 glass-card rounded-2xl p-6 border border-yellow-500/20 bg-yellow-500/[0.02]">
@@ -124,29 +142,60 @@ export default function IntervieweeSection({ recentApplications, interviews = []
                 </div>
             </div>
 
-            {/* Existing Applications List support can stay or be removed if user strictly implies interview focus, but good to keep */}
-            {recentApplications && (
-                <div className="glass-card rounded-2xl p-8 border border-white/5 bg-white/[0.02] hover:bg-white/[0.04] transition-colors group">
-                    <div className="flex items-start justify-between mb-6">
-                        <div>
-                            <h3 className="text-lg font-bold text-white mb-1">My Applications</h3>
-                            <p className="text-sm text-base-content/50">Track your status</p>
-                        </div>
+            {/* Past Interviews List */}
+            <div className="col-span-1 lg:col-span-2 glass-card rounded-2xl p-6 border border-white/5 bg-white/[0.02]">
+                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-green-500" />
+                    Past Interviews
+                </h3>
+                {interviews.filter(i => i.status === 'completed' || i.stage === 'finished').length === 0 ? (
+                    <div className="text-center py-10 text-base-content/40 italic">
+                        No completed interviews yet.
                     </div>
-                    {/* ... existing mock applications list ... */}
-                    <div className="space-y-4">
-                        {recentApplications.map((app, i) => (
-                            <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5">
-                                <div>
-                                    <div className="font-semibold text-white text-sm">{app.company}</div>
-                                    <div className="text-xs text-base-content/50">{app.role}</div>
-                                </div>
-                                <span className={`text-[10px] font-bold px-2 py-1 rounded-md ${app.color}`}>{app.status}</span>
-                            </div>
-                        ))}
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left">
+                            <thead className="text-xs text-base-content/50 uppercase border-b border-white/5">
+                                <tr>
+                                    <th className="px-4 py-3">Interviewer</th>
+                                    <th className="px-4 py-3">Date</th>
+                                    <th className="px-4 py-3">Result</th>
+                                    <th className="px-4 py-3 text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-white/5">
+                                {interviews.filter(i => i.status === 'completed' || i.stage === 'finished').map((interview) => (
+                                    <tr key={interview._id} className="group hover:bg-white/5 transition-colors">
+                                        <td className="px-4 py-4 font-medium">
+                                            {interview.interviewerId?.name || 'Unknown'}
+                                            <div className="text-xs text-base-content/50">Technical Round</div>
+                                        </td>
+                                        <td className="px-4 py-4 text-sm text-base-content/60">
+                                            {new Date(interview.createdAt).toLocaleDateString()}
+                                        </td>
+                                        <td className="px-4 py-4">
+                                            <span className={`inline-flex px-2 py-0.5 rounded text-xs font-semibold 
+                                                ${interview.finalResult === 'pass' ? 'bg-green-500/10 text-green-400' :
+                                                    interview.finalResult === 'fail' ? 'bg-red-500/10 text-red-400' :
+                                                        'bg-white/10 text-base-content/60'}`}>
+                                                {interview.finalResult === 'pass' ? 'Passed' :
+                                                    interview.finalResult === 'fail' ? 'Failed' : 'Pending Review'}
+                                            </span>
+                                        </td>
+                                        <td className="px-4 py-4 text-right">
+                                            <Link href={`/dashboard/interview/review/${interview._id}`}>
+                                                <button className="text-sm text-primary hover:text-white transition-colors font-medium">
+                                                    Review
+                                                </button>
+                                            </Link>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
-                </div>
-            )}
+                )}
+            </div>
         </div>
     );
 }

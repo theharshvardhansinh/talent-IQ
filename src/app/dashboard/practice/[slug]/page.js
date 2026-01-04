@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
 import Editor from '@monaco-editor/react';
 import { ArrowLeft, Play, Settings, Share2, PanelLeft, Code2, Clock, CheckCircle, AlertCircle } from 'lucide-react';
-import { useParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 
 const languages = [
     { id: 'javascript', name: 'JavaScript', ext: 'js' },
@@ -13,8 +13,11 @@ const languages = [
     { id: 'cpp', name: 'C++', ext: 'cpp' }
 ];
 
-export default function ProblemDetail() {
-    const { slug } = useParams();
+export default function ProblemDetail({ params }) {
+    const { slug } = use(params);
+    const searchParams = useSearchParams();
+    const competitionId = searchParams.get('competitionId');
+
     const [problem, setProblem] = useState(null);
     const [code, setCode] = useState('');
     const [language, setLanguage] = useState('javascript');
@@ -27,13 +30,20 @@ export default function ProblemDetail() {
         if (activeTab === 'history') {
             fetch(`/api/problems/${slug}/history`)
                 .then(res => res.json())
-                .then(data => setHistory(data));
+                .then(data => setHistory(data))
+                .catch(err => console.error(err));
         }
     }, [activeTab, slug]);
 
     useEffect(() => {
+        if (!slug) return;
+
+        console.log("Fetching problem:", slug);
         fetch(`/api/problems/${slug}`)
-            .then((res) => res.json())
+            .then((res) => {
+                if (!res.ok) throw new Error("Failed to fetch problem");
+                return res.json();
+            })
             .then((data) => {
                 setProblem(data);
                 if (data.starterCodes && data.starterCodes[language]) {
@@ -41,8 +51,19 @@ export default function ProblemDetail() {
                 } else if (data.starterCode) {
                     setCode(data.starterCode);
                 }
+            })
+            .catch(err => {
+                console.error(err);
+                // Fallback for error state
+                setProblem({
+                    title: 'Error Loading',
+                    titleSlug: slug || 'error',
+                    content: `<p>Error loading problem: ${err.message}</p>`,
+                    starterCodes: { javascript: '// Error' },
+                    difficulty: 'Error'
+                });
             });
-    }, [slug]);
+    }, [slug, language]);
 
     const handleLanguageChange = (e) => {
         const newLang = e.target.value;
@@ -63,9 +84,11 @@ export default function ProblemDetail() {
                 body: JSON.stringify({
                     language,
                     sourceCode: code,
-                    slug: problem.titleSlug
+                    slug: problem.titleSlug,
+                    competitionId: competitionId // Pass this!
                 })
             });
+            // ...
 
             const data = await res.json();
 

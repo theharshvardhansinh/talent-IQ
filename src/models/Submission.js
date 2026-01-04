@@ -11,6 +11,11 @@ const SubmissionSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    competitionId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Competition',
+        required: false,
+    },
     status: {
         type: String, // 'Accepted', 'Runtime Error', etc.
         required: true,

@@ -8,6 +8,7 @@ export default function PracticePage() {
     const [problems, setProblems] = useState([]);
     const [solvedSlugs, setSolvedSlugs] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
         Promise.all([
@@ -20,7 +21,15 @@ export default function PracticePage() {
         });
     }, []);
 
-    // Calculate dynamic stats
+    // Filter problems based on search term
+    const filteredProblems = problems.filter(prob => {
+        const term = searchTerm.toLowerCase();
+        const titleMatch = prob.title.toLowerCase().includes(term);
+        const tagMatch = prob.topicTags.some(tag => tag.name.toLowerCase().includes(term));
+        return titleMatch || tagMatch;
+    });
+
+    // Calculate dynamic stats from the FULL list (or filtered list? Usually full list stats look better, effectively showing what's available globally, but filtered stats are also nice. Let's keep global stats for the cards)
     const solvedCountByDifficulty = problems.reduce((acc, prob) => {
         if (solvedSlugs.includes(prob.titleSlug)) {
             acc[prob.difficulty] = (acc[prob.difficulty] || 0) + 1;
@@ -52,8 +61,10 @@ export default function PracticePage() {
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-base-content/40" />
                         <input
                             type="text"
-                            placeholder="Search questions..."
-                            className="w-full md:w-64 pl-10 pr-4 py-2 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm"
+                            placeholder="Search questions (e.g., 'Graph', 'DP')..."
+                            className="w-full md:w-64 pl-10 pr-4 py-2 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm transition-all"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
                 </div>
@@ -85,6 +96,10 @@ export default function PracticePage() {
 
                 {/* List */}
                 <div className="glass-card rounded-2xl overflow-hidden border border-white/5 bg-white/[0.02]">
+                    <div className="p-6 border-b border-white/5 flex justify-between items-center">
+                        <h2 className="text-xl font-semibold">Problems List</h2>
+                        <span className="text-sm text-base-content/50">Showing {filteredProblems.length} problems</span>
+                    </div>
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="border-b border-white/5 text-base-content/50 text-sm uppercase tracking-wider">
@@ -96,7 +111,7 @@ export default function PracticePage() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/5">
-                            {problems.map((prob) => (
+                            {filteredProblems.map((prob) => (
                                 <tr key={prob.titleSlug} className="group hover:bg-white/[0.02] transition-colors">
                                     <td className="p-6">
                                         {solvedSlugs.includes(prob.titleSlug) ? (

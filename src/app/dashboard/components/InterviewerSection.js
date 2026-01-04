@@ -1,7 +1,7 @@
 
 'use client';
 import { useState } from 'react';
-import { Users, Plus, Calendar, Clock, CheckCircle, Video, Play, Search, AlertCircle } from 'lucide-react';
+import { Users, Plus, Calendar, Clock, CheckCircle, Video, Play, Search, AlertCircle, Trophy } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function InterviewerSection({ candidates, interviews }) {
@@ -31,6 +31,30 @@ export default function InterviewerSection({ candidates, interviews }) {
 
     return (
         <div className="space-y-8">
+            {/* Host Competition Banner */}
+            <div
+                onClick={() => router.push('/dashboard/competitions/create')}
+                className="w-full relative overflow-hidden rounded-2xl p-6 border border-purple-500/30 bg-gradient-to-r from-purple-500/10 to-transparent hover:border-purple-500/50 transition-all cursor-pointer group"
+            >
+                <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
+                    <Trophy className="w-24 h-24 text-purple-500" />
+                </div>
+                <div className="relative z-10 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 rounded-xl bg-purple-500/20 text-purple-400">
+                            <Trophy className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-bold text-white group-hover:text-purple-400 transition-colors">Host a Coding Competition</h3>
+                            <p className="text-sm text-base-content/60">Schedule a contest, set problems, and challenge multiple candidates at once.</p>
+                        </div>
+                    </div>
+                    <div className="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-sm font-bold transition-colors shadow-lg shadow-purple-600/20 flex items-center gap-2">
+                        Create Now <Plus className="w-4 h-4" />
+                    </div>
+                </div>
+            </div>
+
             {/* Pending & Active Columns */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
