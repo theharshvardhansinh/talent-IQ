@@ -7,7 +7,7 @@ import Submission from '@/models/Submission';
 export async function GET() {
     try {
         const session = await getSession();
-        if (!session) {
+        if (!session || !session.user) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
@@ -25,6 +25,7 @@ export async function GET() {
 
         return NextResponse.json(solved);
     } catch (error) {
+        console.error('Error fetching solved stats:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }

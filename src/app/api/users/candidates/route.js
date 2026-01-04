@@ -7,16 +7,19 @@ import User from '@/models/User';
 export async function GET() {
     try {
         const session = await getSession();
-        if (!session || session.user.role !== 'interviewer') {
+        if (!session || !session.user || session.user.role !== 'interviewer') {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
         await dbConnect();
         // Fetch all interviewees
-        const candidates = await User.find({ role: 'interviewee' }).select('name email _id');
+        const candidates = await User.find({ role: 'interviewee' })
+            .select('name email _id')
+            .lean();
 
         return NextResponse.json(candidates);
     } catch (error) {
+        console.error('Error fetching candidates:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
